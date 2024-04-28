@@ -5,7 +5,6 @@ import br.com.test.texoit.controller.dto.IntervalResponseDTO;
 import br.com.test.texoit.controller.dto.MovieRequestDTO;
 import br.com.test.texoit.controller.dto.MovieResponseDTO;
 import br.com.test.texoit.service.MovieService;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,16 +24,16 @@ public class MovieController implements MovieApi {
 
     @Override
     @GetMapping
-    public ResponseEntity<PagedModel<MovieResponseDTO>> findAll(@RequestParam(required = false) String title,
+    public ResponseEntity<PagedModel<MovieResponseDTO>> findAll(@RequestParam(required = false) String producer,
                                                                 @RequestParam(defaultValue = "0") int page,
                                                                 @RequestParam(defaultValue = "10") int size) {
         Pageable paging = PageRequest.of(page, size);
-        final var movies = movieService.findAll(title, paging);
+        final var movies = movieService.findAll(producer, paging);
         movies.forEach(it -> {
             final var selfLink = linkTo(MovieController.class).slash(it.getId()).withSelfRel();
             it.add(selfLink);
         });
-        final var link = linkTo(methodOn(MovieController.class).findAll(title, page, size)).withSelfRel();
+        final var link = linkTo(methodOn(MovieController.class).findAll(producer, page, size)).withSelfRel();
         var pagedMetadata = new PagedModel
                 .PageMetadata(movies.getSize(), movies.getNumber(), movies.getTotalElements(), movies.getTotalPages());
         final var pagedModel = PagedModel.of(movies.getContent(), pagedMetadata, link);

@@ -12,7 +12,7 @@ import java.util.List;
 @Repository
 public interface MovieRepository extends PagingAndSortingRepository<Movie, String>, CrudRepository<Movie, String> {
 
-    Page<Movie> findByTitleContainingIgnoreCase(String title, Pageable pageable);
+    Page<Movie> findByProducersContainingIgnoreCase(String title, Pageable pageable);
     List<Movie> findAllByWinnerIsTrue();
 
 }
