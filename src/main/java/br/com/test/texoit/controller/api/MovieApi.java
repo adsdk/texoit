@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Tag(name = "movie", description = "The Movie API")
 public interface MovieApi {
 
-    @Operation(summary = "Find all Movies paged", description = "A title can be passed as request parameter to filter movies", tags = {"movie"})
+    @Operation(summary = "Find all Movies paged", description = "A producer can be passed as request parameter to filter movies", tags = {"movie"})
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successful operation",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = MovieResponseDTO.class)))
@@ -63,13 +63,13 @@ public interface MovieApi {
     })
     ResponseEntity<Void> remove(@PathVariable String id);
 
-    @Operation(summary = "Retrieve an interval between rewards from producers",
+    @Operation(summary = "Retrieve an interval between awards from producers",
             description = "Calculate and return the min/max interval between winners movies", tags = {"movie"})
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successful operation",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = IntervalResponseDTO.class)))
     })
-    ResponseEntity<IntervalResponseDTO> retrieveIntervalBetweenRewards();
+    ResponseEntity<IntervalResponseDTO> retrieveIntervalBetweenAwards();
 
 }

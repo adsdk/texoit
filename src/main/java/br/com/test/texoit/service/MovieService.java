@@ -51,7 +51,7 @@ public class MovieService {
         movieRepository.delete(movie);
     }
 
-    public IntervalResponseDTO retrieveIntervalBetweenRewards() {
+    public IntervalResponseDTO retrieveIntervalBetweenAwards() {
         final var movies = movieRepository.findAllByWinnerIsTrue();
 
         HashMap<String, IntervalControlDTO> allProducers = new HashMap<>();

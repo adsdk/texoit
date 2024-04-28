@@ -77,8 +77,8 @@ public class MovieController implements MovieApi {
 
     @Override
     @GetMapping("/retrieve-interval")
-    public ResponseEntity<IntervalResponseDTO> retrieveIntervalBetweenRewards() {
-        var interval = movieService.retrieveIntervalBetweenRewards();
+    public ResponseEntity<IntervalResponseDTO> retrieveIntervalBetweenAwards() {
+        var interval = movieService.retrieveIntervalBetweenAwards();
         return ResponseEntity.ok(interval);
     }
 

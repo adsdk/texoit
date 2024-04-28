@@ -1,6 +1,5 @@
 package br.com.test.texoit.service;
 
-import br.com.test.texoit.controller.dto.MovieRequestDTO;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,7 +15,7 @@ class MovieServiceIntegrationTest {
 
     @Test
     void shouldCalculateIntervalWithSuccess() {
-        final var response = movieService.retrieveIntervalBetweenRewards();
+        final var response = movieService.retrieveIntervalBetweenAwards();
 
         assertNotNull(response);
         assertNotNull(response.getMin());
