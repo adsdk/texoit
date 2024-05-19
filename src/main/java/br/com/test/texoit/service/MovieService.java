@@ -4,6 +4,7 @@ import br.com.test.texoit.controller.dto.*;
 import br.com.test.texoit.exception.NotFoundException;
 import br.com.test.texoit.mapper.MovieMapper;
 import br.com.test.texoit.repository.MovieRepository;
+import br.com.test.texoit.repository.model.Movie;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
@@ -54,80 +55,76 @@ public class MovieService {
     public IntervalResponseDTO retrieveIntervalBetweenAwards() {
         final var movies = movieRepository.findAllByWinnerIsTrue();
 
-        HashMap<String, IntervalControlDTO> allProducers = new HashMap<>();
+        HashMap<String, List<Integer>> allProducers = aggregateMovieAward(movies);
+        List<IntervalDTO> intervals = getIntervals(allProducers);
+
+        return IntervalResponseDTO.builder()
+                .min(intervals.stream().filter(intervalDTO -> intervalDTO.getInterval().equals(getMinInterval(intervals))).toList())
+                .max(intervals.stream().filter(intervalDTO -> intervalDTO.getInterval().equals(getMaxInterval(intervals))).toList())
+                .build();
+    }
+
+    private HashMap<String, List<Integer>> aggregateMovieAward(List<Movie> movies) {
+        HashMap<String, List<Integer>> allProducers = new HashMap<>();
         movies.forEach(movie -> {
             var producersFromMovieAnd = movie.getProducers().split(" and ");
             Arrays.stream(producersFromMovieAnd).forEach(it -> {
                 if (it.contains(",")) {
                     Arrays.stream(it.split(","))
-                            .forEach(it2 -> setProducerMinMaxMovieYear(allProducers, movie.getYear(), it2.trim()));
+                            .forEach(it2 -> aggregateMovieAwardByProducer(allProducers, movie.getYear(), it2.trim()));
                 } else {
-                    setProducerMinMaxMovieYear(allProducers, movie.getYear(), it.trim());
+                    aggregateMovieAwardByProducer(allProducers, movie.getYear(), it.trim());
                 }
             });
         });
-
-        final var orderedList = allProducers.values().stream()
-                .filter(triple -> triple.getInterval() >= 0)
-                .sorted(Comparator.comparing(IntervalControlDTO::getInterval)).toList();
-        final var minValue = orderedList.stream().min(Comparator.comparing(IntervalControlDTO::getInterval))
-                .map(IntervalControlDTO::getInterval).orElse(null);
-        final var maxValue = orderedList.stream().max(Comparator.comparing(IntervalControlDTO::getInterval))
-                .map(IntervalControlDTO::getInterval).orElse(null);
-
-        List<IntervalDTO> min = new ArrayList<>();
-        List<IntervalDTO> max = new ArrayList<>();
-
-        allProducers.forEach((s, controlDTO) -> {
-            if (Objects.equals(controlDTO.getInterval(), minValue)) {
-                min.add(IntervalDTO.builder()
-                        .producer(s)
-                        .interval(controlDTO.getInterval())
-                        .previousWin(controlDTO.getMinYear())
-                        .followingWin(controlDTO.getMaxYear())
-                        .build());
-            }
-
-            if (Objects.equals(controlDTO.getInterval(), maxValue)) {
-                max.add(IntervalDTO.builder()
-                        .producer(s)
-                        .interval(controlDTO.getInterval())
-                        .previousWin(controlDTO.getMinYear())
-                        .followingWin(controlDTO.getMaxYear())
-                        .build());
-            }
-        });
-
-        return IntervalResponseDTO.builder()
-                .min(min)
-                .max(max)
-                .build();
+        return allProducers;
     }
 
-    private void setProducerMinMaxMovieYear(HashMap<String, IntervalControlDTO> allProducers,
-                                            Integer movieYear,
-                                            String currentProducer) {
+    private void aggregateMovieAwardByProducer(HashMap<String, List<Integer>> allProducers,
+                                               Integer movieYear,
+                                               String currentProducer) {
         if (StringUtils.isNotBlank(currentProducer)) {
             var producer = allProducers.get(currentProducer);
             if (Objects.nonNull(producer)) {
-                final var currentMinYear = producer.getMinYear();
-                final var currentMaxYear = producer.getMaxYear();
-
-                if (movieYear > currentMaxYear) {
-                    producer.setMaxYear(movieYear);
-                }
-
-                if (currentMinYear < movieYear && currentMaxYear > 0) {
-                    producer.setMinYear(Integer.min(movieYear, currentMaxYear));
-                }
-
-                if (producer.getMinYear() > 0 && producer.getMaxYear() > 0) {
-                    producer.setInterval(producer.getMaxYear() - producer.getMinYear());
-                }
+                producer.add(movieYear);
             } else {
-                allProducers.put(currentProducer, new IntervalControlDTO(movieYear, -1, -1));
+                allProducers.put(currentProducer, new ArrayList<>(List.of(movieYear)));
             }
         }
+    }
+
+    private List<IntervalDTO> getIntervals(HashMap<String, List<Integer>> allProducers) {
+        List<IntervalDTO> intervals = new ArrayList<>();
+
+        allProducers.forEach((s, years) -> {
+            Collections.sort(years);
+            var iterator = years.iterator();
+            if (iterator.hasNext()) {
+                var currentYear = iterator.next();
+                while (iterator.hasNext()) {
+                    var previousYear = currentYear;
+                    currentYear = iterator.next();
+                    intervals.add(IntervalDTO.builder()
+                            .producer(s)
+                            .previousWin(previousYear)
+                            .followingWin(currentYear)
+                            .interval(currentYear - previousYear)
+                            .build());
+                }
+            }
+        });
+
+        return intervals;
+    }
+
+    private static Integer getMinInterval(List<IntervalDTO> intervals) {
+        return intervals.stream()
+                .min(Comparator.comparing(IntervalDTO::getInterval)).map(IntervalDTO::getInterval).orElse(-1);
+    }
+
+    private static Integer getMaxInterval(List<IntervalDTO> intervals) {
+        return intervals.stream()
+                .max(Comparator.comparing(IntervalDTO::getInterval)).map(IntervalDTO::getInterval).orElse(-1);
     }
 
 }

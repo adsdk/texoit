@@ -24,15 +24,15 @@ class MovieServiceIntegrationTest {
         final var min = response.getMin().get(0);
         final var max = response.getMax().get(0);
 
-        assertEquals(min.getProducer(), "Joel Silver");
-        assertEquals(min.getInterval(), 1);
-        assertEquals(min.getPreviousWin(), 1990);
-        assertEquals(min.getFollowingWin(), 1991);
+        assertEquals("Matthew Vaughn", min.getProducer());
+        assertEquals(1, min.getInterval());
+        assertEquals(2002, min.getPreviousWin());
+        assertEquals(2003, min.getFollowingWin());
 
-        assertEquals(max.getProducer(), "Matthew Vaughn");
-        assertEquals(max.getInterval(), 13);
-        assertEquals(max.getPreviousWin(), 2002);
-        assertEquals(max.getFollowingWin(), 2015);
+        assertEquals("Matthew Vaughn", max.getProducer());
+        assertEquals(22, max.getInterval());
+        assertEquals(1980, max.getPreviousWin());
+        assertEquals(2002, max.getFollowingWin());
     }
 
 }
